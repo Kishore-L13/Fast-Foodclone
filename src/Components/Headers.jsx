@@ -1,11 +1,13 @@
 import { Link } from "react-router"
 import UseOnlineStatus from "../Utils/useOnlinestatus"
-import { useState } from "react";
+import { useState,useContext } from "react";
 import { useSelector } from "react-redux";
+import UserContext from "../Utils/UserContext"
 const Headers = () =>{
   const [btnNameReact, setBtnNameReact] = useState("Login")
   const onlineStatus = UseOnlineStatus();
   /// Subscribing to the store using a selector hook
+  const { loggedInUser } = useContext(UserContext);
   const cartItems = useSelector((store) => store.cart.items)
   console.log(cartItems)
   return(
@@ -30,7 +32,9 @@ const Headers = () =>{
               ? setBtnNameReact("Logout")
               : setBtnNameReact("Login");
           }}
-        >{btnNameReact}</button></li>
+        >{btnNameReact}</button>
+        </li>
+        <li className="px-4 ">{loggedInUser}</li>
           </ul>
           </nav>
           </div>
