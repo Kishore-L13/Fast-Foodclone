@@ -17,7 +17,7 @@ class About extends Component  {
     return(
         <div>
             <h1>About you</h1>
-            <UserClass name="kishore CC" location="HYD"/>
+            <UserClass name="kishore CC" location="BLR"/>
         </div>
     )
 }

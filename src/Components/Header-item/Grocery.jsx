@@ -2,10 +2,11 @@ import React from 'react'
 
 const Grocery = () => {
   return (
-    <div>Grocery
+    <div>
+      Grocery
         <h1>
-            {...
-            "Hello cc "
+            {
+            "Add some grocery"
             }
 
         </h1>

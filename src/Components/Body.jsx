@@ -4,29 +4,53 @@ import Shimmer from "./Shimmer";
 import { Link } from "react-router";
 import UseOnlinestatus from "../Utils/useOnlinestatus";
 import UserContext from "../Utils/UserContext" 
+import useDebounce from "../Utils/useDebounce";
 
-function filterData (searchText,listofRestaurant){
-    const filterData = listofRestaurant.filter(
-        (res)=>res.info.name.toLowerCase().includes(searchText.toLowerCase()))
-        return filterData;
-    }
+
+// function filterData (searchText,listofRestaurant){
+//     const filterData = listofRestaurant.filter(
+//         (res)=>res.info.name.toLowerCase().includes(searchText.toLowerCase()))
+//         return filterData;
+//     }
 const Body = () => {
     const [listofRestaurant,setListofRestaurant] = useState([])
     const [searchText,setSearchText] = useState("")
     const [filterRestaurant,setFilterRestaurant] = useState([])
     const RestaurantCardPromoted = withPromotedLabel(RestaurantCard);
     const { loggedInUser, setUserName } = useContext(UserContext);
+    
+    const debouncedSearch = useDebounce(searchText,500)  
     useEffect(()=>{
         fetchData()
     },[])
     
     const fetchData = async ()=> {
-        const data = await fetch("https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.9715987&lng=77.5945627&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING");
+    try {    const data = await fetch("https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.9715987&lng=77.5945627&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING");
        const json = await data.json();
          console.log(json)
-         setListofRestaurant(json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants)
-         setFilterRestaurant(json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants)
+         const restaurants = json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+         setListofRestaurant(restaurants)
+         setFilterRestaurant(restaurants)
+    }catch(err){
+        console.err("Error")
     }
+}
+// ✅ Debounced Search Handling
+useEffect(() => {
+    if (!debouncedSearch.trim()) {
+      setFilterRestaurant(listofRestaurant);
+      return;
+    }
+
+    const filteredData = listofRestaurant.filter((res) =>
+      res.info.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+   
+    );
+    console.log(debouncedSearch)///u cn check debounced 
+    
+    setFilterRestaurant(filteredData);
+  }, [debouncedSearch, listofRestaurant]);
+   // ✅ Handle Online Status
  const Onlinestatus = UseOnlinestatus();
  if (Onlinestatus === false){
     return(<h1>
@@ -47,8 +71,7 @@ const Body = () => {
     hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                  placeholder="Search"    
                  value={searchText} 
-                    onChange = {(e) => {setSearchText (e.target.value)}}/></div>
-                  
+    onChange = {(e) => {setSearchText (e.target.value)}}/></div>
                   <div className="m-2 p-2">
                     <button className=" bg-indigo-600 text-white text-sm leading-6 font-medium py-2 px-4 rounded-lg"
                   onClick={()=>{ 
@@ -56,10 +79,19 @@ const Body = () => {
                         (res)=>res.info.name.toLowerCase().includes(searchText.toLowerCase()))
                           setFilterRestaurant (filterData)
                         } 
-            //setFilterRestaurant(data);
                 }
         >Search</button>  
         </div>
+        {/* ✅ Clear Button */}
+        <div className="m-2 p-2">
+            <button
+              className="bg-indigo-600 text-white text-sm leading-6 font-medium py-2 px-4 rounded-lg"
+              onClick={() => setSearchText("")}
+            >
+              Clear
+            </button>
+          </div>
+            {/* ✅ Filter Top Rated Restaurants */}
         <div className="m-2 p-2">
                     <button 
                     className=" bg-indigo-600 text-white text-sm leading-6 font-medium py-2 px-4 rounded-lg"
@@ -74,6 +106,7 @@ const Body = () => {
                     >TopRated Restaurant</button>
                     </div>
                     <div>
+                 {/* ✅ User Context Input */}
                     <label>UserName:</label>
                       <input type="text" value ={loggedInUser} 
                       className="border border-gray-300 rounded p-2 m-4
@@ -83,15 +116,14 @@ const Body = () => {
                       onChange={(e)=>setUserName(e.target.value)}/>
                     </div>
                     </div>
+            {/* ✅ Restaurant List */}
                 <div className='flex flex-wrap justify-center shadow-lg '>
                  {filterRestaurant.map((restaurant) =>                 
                 (<Link to={`/restaurants/${restaurant?.info?.id}` }>
             { restaurant?.info?.isOpen? 
             (<RestaurantCardPromoted key={restaurant?.info?.id} {...restaurant?.info}/>) :
                ( <RestaurantCard key={restaurant?.info?.id} {...restaurant?.info} />)
-            }
-              
-                </Link>
+            }</Link>
  ))}
      </div>
     </div>
